@@ -1,1 +1,249 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GST Statements</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mu:#667085;--bd:#d9dde3;--ac:#1d4ed8;--ac2:#fff;--dg:#c62828;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1b2027;--tx:#eceff4;--mu:#9aa4b2;--bd:#323a45;--ac:#6ea0ff;--ac2:#0b1220;--dg:#ff7b72}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1b2027;--tx:#eceff4;--mu:#9aa4b2;--bd:#323a45;--ac:#6ea0ff;--ac2:#0b1220;--dg:#ff7b72}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--card);border-bottom:1px solid var(--bd);z-index:5}
+header h1{font-size:16px;margin:0;padding:10px 14px 0;display:flex;justify-content:space-between;align-items:baseline}
+#mode{font-size:11px;color:var(--mu);font-weight:400}
+nav{display:flex;overflow-x:auto;padding:4px 8px 0}
+nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mu);padding:10px 12px;font-size:14px;white-space:nowrap;cursor:pointer}
+nav button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+main{max-width:900px;margin:0 auto;padding:14px}
+.page{display:none}.page.on{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+input,select{width:100%;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+button.pri,button.sec{padding:12px 16px;font-size:15px;border-radius:8px;border:1px solid var(--ac);cursor:pointer;font-weight:600}
+button.pri{background:var(--ac);color:var(--ac2)}button.sec{background:none;color:var(--ac)}
+button.lnk{background:none;border:0;color:var(--ac);cursor:pointer;font-size:14px;padding:4px 6px}button.lnk.d{color:var(--dg)}
+.big{width:100%;margin-top:16px;padding:15px;font-size:17px}
+.tw{overflow-x:auto}
+table.l{width:100%;border-collapse:collapse;font-size:14px}
+table.l th{text-align:left;color:var(--mu);font-weight:500;border-bottom:1px solid var(--bd);padding:8px 6px}
+table.l td{border-bottom:1px solid var(--bd);padding:9px 6px;white-space:nowrap}
+.r{text-align:right !important}.mu{color:var(--mu);font-size:13px}
+tr.click{cursor:pointer}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+#toast.on{opacity:1}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);width:min(420px,92vw)}
+dialog::backdrop{background:#0008}
+/* paper preview */
+#pvh{overflow:hidden;width:100%;margin-top:12px}
+#sheet{width:210mm;height:296mm;background:#fff;color:#000;transform-origin:top left;box-shadow:0 1px 8px #0004;font-family:Arial,Helvetica,sans-serif}
+.slip{height:98.66mm;padding:6mm 14mm 4mm;border-bottom:1px dashed #000;overflow:hidden;font-size:var(--fs,16px);display:flex;flex-direction:column}
+.slip:last-child{border-bottom:0}
+.slip .pn{font-size:1.45em;font-weight:700;line-height:1.15}
+.slip .pm{font-size:1.05em;margin:.15em 0 .5em}
+.slip .cols{display:flex;gap:1.2em;flex:1;align-items:flex-start}
+.slip table{border-collapse:collapse;flex:1;font-size:1em}
+.slip th{border:1px solid #444;padding:.15em .5em;text-align:left;font-weight:700;background:#eee}
+.slip td{border:1px solid #444;padding:.12em .5em;line-height:1.3}
+.slip td:first-child{font-weight:700}
+.slip .r{text-align:right !important}
+.slip .tot{font-size:1.3em;font-weight:800;margin-top:.4em}
+.empty{padding:30px;text-align:center;color:#777}
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:30;padding:20px}body.in #login{display:none}body:not(.in) header,body:not(.in) main{display:none}
+@page{size:210mm 297mm portrait;margin:0}
+@media print{
+ html,body{background:#fff !important;margin:0 !important;padding:0 !important}
+ :root{padding:0 !important}
+ header,.noprint,.page:not(#p-gen),#toast{display:none !important}
+ main{padding:0;max-width:none}
+ #p-gen{display:block !important}
+ #pvh{height:auto !important;overflow:visible !important;margin:0}
+ #sheet{transform:none !important;box-shadow:none !important;width:210mm;height:296mm;page-break-after:avoid;break-after:avoid}
+}
+</style></head><body>
+<header><h1><span>GST Statements</span><span><span id="mode"></span> <button class="lnk" id="so">Sign out</button></span></h1>
+<nav id="nav"><button data-p="add" class="on">Add Bill</button><button data-p="gen">Generate Statement</button><button data-p="bills">All Bills</button><button data-p="sum">Monthly Summary</button><button data-p="cli">Clients</button></nav></header>
+<main>
+<section id="p-add" class="page on"><div class="card">
+<label>Party Name</label><input id="a-party" list="dl" placeholder="Type to search or add new client" autocomplete="off">
+<div id="a-new" class="mu"></div>
+<label>Bill Number</label><input id="a-no" inputmode="numeric" autocomplete="off">
+<label>GST / Tax Amount (₹)</label><input id="a-tax" inputmode="decimal" autocomplete="off">
+<label>Bill Date</label><input id="a-date" type="date">
+<button class="pri big" id="a-save">SAVE BILL</button></div>
+<div class="card"><div class="mu" style="margin-bottom:6px">Just saved</div><div class="tw"><table class="l" id="a-recent"></table></div></div></section>
 
+<section id="p-gen" class="page"><div class="card noprint">
+<label>Party</label><input id="g-party" list="dl" placeholder="Select party" autocomplete="off">
+<div class="row"><div><label>Month</label><select id="g-m"></select></div><div><label>Year</label><select id="g-y"></select></div></div>
+<div class="row" style="margin-top:14px"><button class="pri" id="g-print">PRINT 3 COPIES ON ONE A4</button><button class="sec" id="g-pdf">DOWNLOAD PDF</button></div></div>
+<div id="pvh"><div id="sheet"></div></div></section>
+
+<section id="p-bills" class="page"><div class="card">
+<input id="b-q" placeholder="Search party or bill no.">
+<div class="row" style="margin-top:8px"><select id="b-p"></select><select id="b-m"></select><select id="b-y"></select></div></div>
+<div class="card"><div class="tw"><table class="l" id="b-t"></table></div><div class="mu" id="b-s" style="margin-top:8px"></div></div></section>
+
+<section id="p-sum" class="page"><div class="card"><div class="row"><div><label>Month</label><select id="s-m"></select></div><div><label>Year</label><select id="s-y"></select></div></div></div>
+<div class="card"><div class="tw"><table class="l" id="s-t"></table></div></div></section>
+
+<section id="p-cli" class="page"><div class="card"><div class="row"><input id="c-q" placeholder="Search clients"><button class="pri" id="c-add" style="flex:0 0 auto">+ Add Client</button></div></div>
+<div class="card"><div class="tw"><table class="l" id="c-t"></table></div></div></section>
+</main>
+<div id="login"><div class="card" style="text-align:center;max-width:340px;width:100%"><h2 style="margin:0 0 6px">GST Statements</h2><p class="mu">Sign in with your Google account to continue</p><button class="pri big" id="lb">Sign in with Google</button><p id="lm" class="mu" style="color:var(--dg)"></p></div></div>
+<datalist id="dl"></datalist>
+<dialog id="dlg"><h3 id="dt" style="margin:0 0 4px"></h3><div id="df"></div><div class="row" style="margin-top:16px"><button class="sec" id="dc">Cancel</button><button class="pri" id="dok">Save</button></div></dialog>
+<div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const inr=n=>'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const LSK='vimal-gst-v1';
+let clients=[],bills=[],db=null,recent=[],dupOK='';
+const nowIso=()=>new Date().toISOString();
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
+/* ===== FIREBASE SETUP: paste your web-app config here ===== */
+const CFG={apiKey:"AIzaSyD2Mv7qpuVe8HK1ANnRoUl7VXXmrupj3wg",authDomain:"gstmaker-a4160.firebaseapp.com",projectId:"gstmaker-a4160",storageBucket:"gstmaker-a4160.firebasestorage.app",messagingSenderId:"845526044396",appId:"1:845526044396:web:cfc7d544bb44f53a3b5fc9"};
+/* Only these Google accounts may enter (also enforce in Firestore rules). Empty = any signed-in account. */
+const ALLOWED_EMAILS=['shashank.freakyboy@gmail.com','vimal.industries2305@gmail.com'];
+firebase.initializeApp(CFG);
+const auth=firebase.auth();db=firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+const CN=c=>c==='bills'?'gstBills':'gstClients';
+let unsub=[];
+async function put(coll,o){const a=coll==='bills'?bills:clients;const i=a.findIndex(x=>x.id===o.id);if(i<0)a.push(o);else a[i]=o;
+ try{await db.collection(CN(coll)).doc(o.id).set(o)}catch(e){toast('Save failed ('+(e.code||'error')+')')}}
+async function rem(coll,id){const a=coll==='bills'?bills:clients;const i=a.findIndex(x=>x.id===id);if(i>=0)a.splice(i,1);
+ try{await db.collection(CN(coll)).doc(id).delete()}catch(e){toast('Delete failed ('+(e.code||'error')+')')}}
+function init(){
+ $('#lb').onclick=async()=>{const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  try{await auth.signInWithPopup(p)}catch(e){if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment')auth.signInWithRedirect(p);
+   else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')$('#lm').textContent='Sign-in failed: '+e.code}};
+ $('#so').onclick=()=>auth.signOut();
+ auth.onAuthStateChanged(u=>{unsub.forEach(f=>f());unsub=[];
+  if(!u){document.body.classList.remove('in');clients=[];bills=[];return}
+  const ok=!ALLOWED_EMAILS.length||ALLOWED_EMAILS.map(x=>x.toLowerCase()).includes((u.email||'').toLowerCase());
+  if(!ok){$('#lm').textContent=u.email+' is not allowed to use this app.';auth.signOut();return}
+  $('#lm').textContent='';document.body.classList.add('in');$('#mode').textContent=u.email;
+  const err=e=>toast('Database error: '+(e.code||''));
+  unsub.push(db.collection('gstClients').onSnapshot(s=>{clients=s.docs.map(d=>d.data());refresh()},err));
+  unsub.push(db.collection('gstBills').onSnapshot(s=>{bills=s.docs.map(d=>d.data());refresh()},err));
+  scale()})}
+/* nav */
+function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on',e.id==='p-'+p));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+ if(p==='gen')renderStmt();scrollTo(0,0)}
+$('#nav').onclick=e=>{if(e.target.dataset.p)go(e.target.dataset.p)};
+/* selects */
+function fillM(sel,all){sel.innerHTML=(all?'<option value="">All months</option>':'')+MN.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('')}
+function fillY(sel,all){const cy=new Date().getFullYear(),ys=new Set([cy-1,cy,cy+1]);bills.forEach(b=>ys.add(+b.date.slice(0,4)));
+ const v=sel.value||(all?'':String(cy));sel.innerHTML=(all?'<option value="">All years</option>':'')+[...ys].sort((a,b)=>b-a).map(y=>`<option>${y}</option>`).join('');sel.value=v}
+['#g-m','#s-m'].forEach(s=>fillM($(s)));fillM($('#b-m'),1);
+const cm=String(new Date().getMonth()+1).padStart(2,'0');$('#g-m').value=$('#s-m').value=cm;$('#a-date').value=today();
+function refresh(){
+ const sorted=[...clients].sort((a,b)=>a.name.localeCompare(b.name));
+ $('#dl').innerHTML=sorted.map(c=>`<option value="${esc(c.name)}">`).join('');
+ const bp=$('#b-p'),v=bp.value;bp.innerHTML='<option value="">All parties</option>'+sorted.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');bp.value=v;
+ ['#g-y','#s-y'].forEach(s=>fillY($(s)));fillY($('#b-y'),1);
+ newHint();renderRecent();renderBills();renderSum();renderCli();renderStmt()}
+const findC=n=>clients.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase());
+/* add bill */
+function newHint(){const n=$('#a-party').value.trim();$('#a-new').textContent=n&&!findC(n)?'New client "'+n+'" will be added':''}
+$('#a-party').oninput=newHint;
+async function saveBill(){
+ const name=$('#a-party').value.trim(),no=$('#a-no').value.trim(),date=$('#a-date').value,tax=parseFloat($('#a-tax').value);
+ if(!name)return toast('Select a party');if(!no)return toast('Enter bill number');if(!date)return toast('Enter bill date');if(isNaN(tax)||tax<0)return toast('Enter tax amount');
+ let c=findC(name);
+ if(c&&bills.some(b=>b.partyId===c.id&&b.no===no)&&dupOK!==c.id+no){dupOK=c.id+no;return toast('Bill '+no+' already exists for this party. Press Save again to add anyway.')}
+ dupOK='';
+ if(!c){c={id:uid(),name,gstin:'',address:'',created:nowIso(),updated:nowIso()};await put('clients',c)}
+ const b={id:uid(),partyId:c.id,party:c.name,no,date,tax,created:nowIso(),updated:nowIso()};
+ await put('bills',b);recent.unshift(b);recent=recent.slice(0,5);
+ $('#a-no').value='';$('#a-tax').value='';$('#a-no').focus();toast('Saved '+no+' · '+inr(tax));refresh()}
+$('#a-save').onclick=saveBill;$('#a-tax').onkeydown=e=>{if(e.key==='Enter')saveBill()};$('#a-no').onkeydown=e=>{if(e.key==='Enter')$('#a-tax').focus()};
+function renderRecent(){const t=$('#a-recent');const r=recent.filter(x=>bills.some(b=>b.id===x.id));
+ t.innerHTML=r.length?r.map(b=>`<tr><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.tax)}</td></tr>`).join(''):'<tr><td class="mu">Nothing saved yet</td></tr>'}
+/* generic dialog */
+function openForm(title,fields,cb,ok){$('#dt').textContent=title;
+ $('#df').innerHTML=fields.map((f,i)=>f.msg?`<p>${esc(f.msg)}</p>`:`<label>${f.label}</label><input id="df${i}" type="${f.type||'text'}" ${f.list?'list="dl"':''} value="${esc(f.val)}">`).join('');
+ $('#dok').textContent=ok||'Save';$('#dok').onclick=async()=>{const v=fields.map((f,i)=>f.msg?null:$('#df'+i).value.trim());if(await cb(v)!==false)$('#dlg').close()};
+ $('#dc').onclick=()=>$('#dlg').close();$('#dlg').showModal()}
+/* statement */
+function stmtData(){const c=findC($('#g-party').value),m=$('#g-m').value,y=$('#g-y').value;
+ const rows=c?bills.filter(b=>b.partyId===c.id&&b.date.slice(0,4)===y&&b.date.slice(5,7)===m).sort((a,b)=>a.date.localeCompare(b.date)||a.no.localeCompare(b.no,undefined,{numeric:true})):[];
+ return{c,rows,label:MN[+m-1]+' '+y}}
+function slip(d,cols,total){const per=Math.max(1,Math.ceil(d.rows.length/cols));let h='';
+ for(let k=0;k<cols;k++){const part=d.rows.slice(k*per,(k+1)*per);if(!part.length)break;
+  h+='<table><tr><th>Bill No.</th><th class="r">Tax</th></tr>'+part.map(b=>`<tr><td>${esc(b.no)}</td><td class="r">${inr(b.tax)}</td></tr>`).join('')+'</table>'}
+ return`<div class="slip"><div class="pn">${esc(d.c.name)}</div><div class="pm">${d.label}</div><div class="cols">${h}</div><div class="tot">TOTAL GST: ${inr(total)}</div></div>`}
+function renderStmt(){const sh=$('#sheet');if(!$('#p-gen').classList.contains('on')&&!matchMedia('print').matches)return;
+ const d=stmtData();
+ if(!d.c||!d.rows.length){sh.innerHTML=`<div class="empty">${d.c?'No bills for '+esc(d.c.name)+' in '+d.label:'Select a party, month and year'}</div>`;scale();return}
+ const total=d.rows.reduce((s,b)=>s+Number(b.tax),0);
+ const tries=[[1,17],[1,16],[1,15],[1,14],[1,13],[1,12],[2,16],[2,15],[2,14],[2,13],[2,12],[2,11],[3,14],[3,13],[3,12],[3,11],[3,10],[3,9]];
+ for(const[cols,fs]of tries){sh.style.setProperty('--fs',fs+'px');sh.innerHTML=slip(d,cols,total)+slip(d,cols,total)+slip(d,cols,total);
+  if([...sh.children].every(s=>s.scrollHeight<=s.clientHeight+1))break}
+ scale()}
+function scale(){const w=$('#pvh').clientWidth,s=Math.min(1,(w-2)/794);$('#sheet').style.transform='scale('+s+')';$('#pvh').style.height=(1118*s)+'px'}
+addEventListener('resize',scale);
+['#g-party','#g-m','#g-y'].forEach(s=>$(s).addEventListener('input',renderStmt));
+function doPrint(){const o=document.getElementById('pf');if(o)o.remove();
+ const f=document.createElement('iframe');f.id='pf';f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+ try{const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('');const w=f.contentDocument;w.open();
+ w.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GST Statement</title><style>'+css+'</style></head><body>'+$('#sheet').outerHTML+'</body></html>');w.close();
+ setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){window.print()}},300)}catch(e){window.print()}}
+$('#g-print').onclick=()=>{const d=stmtData();if(!d.rows.length)return toast('No bills to print');renderStmt();doPrint()};
+$('#g-pdf').onclick=async()=>{const d=stmtData();if(!d.rows.length)return toast('No bills to print');
+ if(!window.html2canvas||!window.jspdf)return toast('PDF library did not load');
+ const sh=$('#sheet'),old=sh.style.transform;sh.style.transform='none';
+ try{const cv=await html2canvas(sh,{scale:2,backgroundColor:'#fff'});const pdf=new jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);
+  const name=(d.c.name+'_GST_'+d.label).replace(/[^\w]+/g,'_')+'.pdf';
+  pdf.save(name)}
+ catch(e){if(!e||e.code!=='cancelled')toast('Could not create PDF')}
+ sh.style.transform=old;scale()};
+/* all bills */
+const fmtD=s=>s.slice(8,10)+'-'+s.slice(5,7)+'-'+s.slice(0,4);
+function renderBills(){const q=$('#b-q').value.toLowerCase(),p=$('#b-p').value,m=$('#b-m').value,y=$('#b-y').value;
+ const r=bills.filter(b=>(!p||b.partyId===p)&&(!m||b.date.slice(5,7)===m)&&(!y||b.date.slice(0,4)===y)&&(!q||(b.party+' '+b.no).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.created.localeCompare(a.created));
+ $('#b-t').innerHTML='<tr><th>Date</th><th>Party</th><th>Bill No.</th><th class="r">Tax</th><th></th></tr>'+r.map(b=>`<tr><td>${fmtD(b.date)}</td><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.tax)}</td><td class="r"><button class="lnk" data-e="${b.id}">Edit</button><button class="lnk d" data-d="${b.id}">Delete</button></td></tr>`).join('');
+ $('#b-s').textContent=r.length+' bills · '+inr(r.reduce((s,b)=>s+Number(b.tax),0))}
+['#b-q','#b-p','#b-m','#b-y'].forEach(s=>$(s).addEventListener('input',renderBills));
+$('#b-t').onclick=e=>{const b=bills.find(x=>x.id===(e.target.dataset.e||e.target.dataset.d));if(!b)return;
+ if(e.target.dataset.e)openForm('Edit bill',[{label:'Party',val:b.party,list:1},{label:'Bill No.',val:b.no},{label:'Bill Date',val:b.date,type:'date'},{label:'Tax (₹)',val:b.tax,type:'number'}],async v=>{
+  const tax=parseFloat(v[3]);if(!v[0]||!v[1]||!v[2]||isNaN(tax)){toast('Fill all fields');return false}
+  let c=findC(v[0]);if(!c){c={id:uid(),name:v[0],gstin:'',address:'',created:nowIso(),updated:nowIso()};await put('clients',c)}
+  await put('bills',{...b,partyId:c.id,party:c.name,no:v[1],date:v[2],tax,updated:nowIso()});refresh()});
+ else openForm('Delete bill?',[{msg:b.party+' · Bill '+b.no+' · '+inr(b.tax)}],async()=>{await rem('bills',b.id);refresh()},'Delete')};
+/* summary */
+function renderSum(){const m=$('#s-m').value,y=$('#s-y').value,g={};
+ bills.filter(b=>b.date.slice(0,4)===y&&b.date.slice(5,7)===m).forEach(b=>{(g[b.party]=g[b.party]||{n:0,t:0});g[b.party].n++;g[b.party].t+=Number(b.tax)});
+ const k=Object.keys(g).sort((a,b)=>a.localeCompare(b));
+ $('#s-t').innerHTML='<tr><th>Party</th><th class="r">Bills</th><th class="r">Total GST</th></tr>'+(k.length?k.map(n=>`<tr class="click" data-n="${esc(n)}"><td>${esc(n)}</td><td class="r">${g[n].n}</td><td class="r">${inr(g[n].t)}</td></tr>`).join('')+`<tr><td><b>All parties</b></td><td class="r"><b>${k.reduce((s,n)=>s+g[n].n,0)}</b></td><td class="r"><b>${inr(k.reduce((s,n)=>s+g[n].t,0))}</b></td></tr>`:'<tr><td colspan="3" class="mu">No bills in this month</td></tr>')}
+['#s-m','#s-y'].forEach(s=>$(s).addEventListener('input',renderSum));
+$('#s-t').onclick=e=>{const tr=e.target.closest('tr[data-n]');if(!tr)return;$('#g-party').value=tr.dataset.n;$('#g-m').value=$('#s-m').value;$('#g-y').value=$('#s-y').value;go('gen')};
+/* clients */
+function renderCli(){const q=$('#c-q').value.toLowerCase();
+ const r=clients.filter(c=>(c.name+' '+(c.gstin||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+ $('#c-t').innerHTML='<tr><th>Party</th><th>GSTIN</th><th>Address</th><th class="r">Bills</th><th class="r">Total GST</th><th></th></tr>'+r.map(c=>{const bs=bills.filter(b=>b.partyId===c.id);
+  return`<tr><td>${esc(c.name)}</td><td>${esc(c.gstin||'')}</td><td>${esc(c.address||'')}</td><td class="r">${bs.length}</td><td class="r">${inr(bs.reduce((s,b)=>s+Number(b.tax),0))}</td><td class="r"><button class="lnk" data-c="${c.id}">Edit</button></td></tr>`}).join('')}
+$('#c-q').oninput=renderCli;
+function clientForm(c){const isNew=!c;c=c||{id:uid(),name:'',gstin:'',address:'',created:nowIso()};
+ openForm(isNew?'Add client':'Edit client',[{label:'Party Name',val:c.name},{label:'GSTIN (optional)',val:c.gstin||''},{label:'Address (optional)',val:c.address||''}],async v=>{
+  if(!v[0]){toast('Enter party name');return false}
+  const dup=findC(v[0]);if(dup&&dup.id!==c.id){toast('Client already exists');return false}
+  const renamed=!isNew&&c.name!==v[0];await put('clients',{...c,name:v[0],gstin:v[1],address:v[2],updated:nowIso()});
+  if(renamed)for(const b of bills.filter(b=>b.partyId===c.id))await put('bills',{...b,party:v[0],updated:nowIso()});refresh()})}
+$('#c-add').onclick=()=>clientForm();
+$('#c-t').onclick=e=>{const c=clients.find(x=>x.id===e.target.dataset.c);if(c)clientForm(c)};
+init();
+</script></body></html>
