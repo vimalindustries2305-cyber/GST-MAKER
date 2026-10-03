@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GST Statements</title>
+<title>GST &amp; Challan</title>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mu:#667085;--bd:#d9dde3;--ac:#1d4ed8;--ac2:#fff;--dg:#c62828;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1b2027;--tx:#eceff4;--mu:#9aa4b2;--bd:#323a45;--ac:#6ea0ff;--ac2:#0b1220;--dg:#ff7b72}}
@@ -36,8 +36,8 @@ tr.click{cursor:pointer}
 dialog{border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);width:min(420px,92vw)}
 dialog::backdrop{background:#0008}
 /* paper preview */
-#pvh{overflow:hidden;width:100%;margin-top:12px}
-#sheet{width:210mm;height:296mm;background:#fff;color:#000;transform-origin:top left;box-shadow:0 1px 8px #0004;font-family:Arial,Helvetica,sans-serif}
+#pvh,#cpvh{overflow:hidden;width:100%;margin-top:12px}
+#sheet,#csheet{width:210mm;height:296mm;background:#fff;color:#000;transform-origin:top left;box-shadow:0 1px 8px #0004;font-family:Arial,Helvetica,sans-serif}
 .slip{height:98.66mm;padding:6mm 14mm 4mm;border-bottom:1px dashed #000;overflow:hidden;font-size:var(--fs,16px);display:flex;flex-direction:column}
 .slip:last-child{border-bottom:0}
 .slip .pn{font-size:1.45em;font-weight:700;line-height:1.15}
@@ -51,19 +51,36 @@ dialog::backdrop{background:#0008}
 .slip .tot{font-size:1.3em;font-weight:800;margin-top:.4em}
 .empty{padding:30px;text-align:center;color:#777}
 #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:30;padding:20px}body.in #login{display:none}body:not(.in) header,body:not(.in) main{display:none}
+body:not(.s-gst) #nav,body:not(.s-cha) #cnav,body.s-home #hb{display:none}
+#hb{padding:0 8px 0 0;font-weight:600}
+.hm{display:grid;gap:14px;max-width:520px;margin:30px auto}
+.hm button{text-align:left;padding:22px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:20px;font-weight:700;cursor:pointer}
+.hm button span{display:block;font-size:14px;font-weight:400;color:var(--mu);margin-top:4px}
+.cp{height:100%;padding:16mm 18mm 12mm;display:flex;flex-direction:column;font-size:var(--fs,16px)}
+.cp .pn{font-size:1.6em;font-weight:700;line-height:1.15}
+.cp .pm{font-size:1.1em;margin:.2em 0 .8em}
+.cp .cols{display:flex;gap:1.2em;align-items:flex-start}
+.cp table{border-collapse:collapse;flex:1;font-size:1em}
+.cp th{border:1px solid #444;padding:.25em .6em;text-align:left;font-weight:700;background:#eee}
+.cp td{border:1px solid #444;padding:.22em .6em;line-height:1.3}
+.cp td:first-child{font-weight:700}
+.cp .r{text-align:right !important}
+.cfoot{margin:1em 0 0 auto;width:min(100%,24em)}
+.ctr{display:flex;justify-content:space-between;gap:1em;margin-top:.45em;font-size:1.1em}
+.ctr.big{font-size:1.35em;font-weight:800;border-top:2px solid #000;padding-top:.3em;margin-top:.6em}
+.sm{font-size:.7em;font-weight:400}
 @page{size:210mm 297mm portrait;margin:0}
 @media print{
  html,body{background:#fff !important;margin:0 !important;padding:0 !important}
  :root{padding:0 !important}
- header,.noprint,.page:not(#p-gen),#toast{display:none !important}
+ header,.noprint,#toast{display:none !important}
  main{padding:0;max-width:none}
- #p-gen{display:block !important}
- #pvh{height:auto !important;overflow:visible !important;margin:0}
- #sheet{transform:none !important;box-shadow:none !important;width:210mm;height:296mm;page-break-after:avoid;break-after:avoid}
+ #pvh,#cpvh{height:auto !important;overflow:visible !important;margin:0}
+ #sheet,#csheet{transform:none !important;box-shadow:none !important;width:210mm;height:296mm;page-break-after:avoid;break-after:avoid}
 }
 </style></head><body>
-<header><h1><span>GST Statements</span><span><span id="mode"></span> <button class="lnk" id="so">Sign out</button></span></h1>
-<nav id="nav"><button data-p="add" class="on">Add Bill</button><button data-p="gen">Generate Statement</button><button data-p="bills">All Bills</button><button data-p="sum">Monthly Summary</button><button data-p="cli">Clients</button></nav></header>
+<header><h1><span><button class="lnk" id="hb">⌂ Home</button><span id="ttl">GST Statements</span></span><span><span id="mode"></span> <button class="lnk" id="so">Sign out</button></span></h1>
+<nav id="nav"><button data-p="add" class="on">Add Bill</button><button data-p="gen">Generate Statement</button><button data-p="bills">All Bills</button><button data-p="sum">Monthly Summary</button><button data-p="cli">Clients</button></nav><nav id="cnav"><button data-p="ca" class="on">Add Challan</button><button data-p="cg">Print Challans</button><button data-p="cb">All Challans</button><button data-p="cc">Challan Clients</button></nav></header>
 <main>
 <section id="p-add" class="page on"><div class="card">
 <label>Party Name</label><input id="a-party" list="dl" placeholder="Type to search or add new client" autocomplete="off">
@@ -85,14 +102,35 @@ dialog::backdrop{background:#0008}
 <div class="row" style="margin-top:8px"><select id="b-p"></select><select id="b-m"></select><select id="b-y"></select></div></div>
 <div class="card"><div class="tw"><table class="l" id="b-t"></table></div><div class="mu" id="b-s" style="margin-top:8px"></div></div></section>
 
-<section id="p-sum" class="page"><div class="card"><div class="row"><div><label>Month</label><select id="s-m"></select></div><div><label>Year</label><select id="s-y"></select></div></div></div>
+<section id="p-sum" class="page"><div class="card"><div class="row"><div><label>Month</label><select id="s-m"></select></div><div><label>Year</label><select id="s-y"></select></div></div><div class="row" style="margin-top:14px"><button class="sec" id="s-csv1">Download summary (CSV)</button><button class="sec" id="s-csv2">Download all bills (CSV)</button></div></div>
 <div class="card"><div class="tw"><table class="l" id="s-t"></table></div></div></section>
 
 <section id="p-cli" class="page"><div class="card"><div class="row"><input id="c-q" placeholder="Search clients"><button class="pri" id="c-add" style="flex:0 0 auto">+ Add Client</button></div></div>
 <div class="card"><div class="tw"><table class="l" id="c-t"></table></div></div></section>
+<section id="p-home" class="page"><div class="hm"><button data-go="add">GST Statements<span>Enter bills and print monthly GST slips</span></button><button data-go="ca">Challan Entry<span>Enter challans and print challan statements</span></button></div></section>
+<section id="p-ca" class="page"><div class="card">
+<label>Party Name</label><input id="ca-party" list="dlc" placeholder="Type to search or add new client" autocomplete="off"><div id="ca-new" class="mu"></div>
+<label>Challan No.</label><input id="ca-no" inputmode="numeric" autocomplete="off">
+<label>Amount (₹)</label><input id="ca-amt" inputmode="decimal" autocomplete="off">
+<label>Date</label><input id="ca-date" type="date">
+<button class="pri big" id="ca-save">SAVE CHALLAN</button></div>
+<div class="card"><div class="mu" style="margin-bottom:6px">Just saved</div><div class="tw"><table class="l" id="ca-recent"></table></div></div></section>
+<section id="p-cg" class="page"><div class="card noprint">
+<label>Party</label><input id="cg-party" list="dlc" placeholder="Select party" autocomplete="off">
+<div class="row"><div><label>Month</label><select id="cg-m"></select></div><div><label>Year</label><select id="cg-y"></select></div></div>
+<label style="display:flex;gap:8px;align-items:center;color:var(--tx);margin-top:14px"><input type="checkbox" id="cg-gst" style="width:auto"> Add total GST at the end</label>
+<div id="cg-gbox" style="display:none"><label>GST party (from GST statements)</label><input id="cg-gparty" list="dl" placeholder="Select GST party" autocomplete="off">
+<div class="row"><div><label>GST month</label><select id="cg-gm"></select></div><div><label>GST year</label><select id="cg-gy"></select></div></div><div id="cg-note" class="mu" style="margin-top:6px"></div></div>
+<div class="row" style="margin-top:14px"><button class="pri" id="cg-print">PRINT (1 A4)</button><button class="sec" id="cg-pdf">DOWNLOAD PDF</button></div></div>
+<div id="cpvh"><div id="csheet"></div></div></section>
+<section id="p-cb" class="page"><div class="card"><input id="cb-q" placeholder="Search party or challan no.">
+<div class="row" style="margin-top:8px"><select id="cb-p"></select><select id="cb-m"></select><select id="cb-y"></select></div></div>
+<div class="card"><div class="tw"><table class="l" id="cb-t"></table></div><div class="mu" id="cb-s" style="margin-top:8px"></div></div></section>
+<section id="p-cc" class="page"><div class="card"><div class="row"><input id="cc-q" placeholder="Search clients"><button class="pri" id="cc-add" style="flex:0 0 auto">+ Add Client</button></div></div>
+<div class="card"><div class="tw"><table class="l" id="cc-t"></table></div></div></section>
 </main>
 <div id="login"><div class="card" style="text-align:center;max-width:340px;width:100%"><h2 style="margin:0 0 6px">GST Statements</h2><p class="mu">Sign in with your Google account to continue</p><button class="pri big" id="lb">Sign in with Google</button><p id="lm" class="mu" style="color:var(--dg)"></p></div></div>
-<datalist id="dl"></datalist>
+<datalist id="dl"></datalist><datalist id="dlc"></datalist>
 <dialog id="dlg"><h3 id="dt" style="margin:0 0 4px"></h3><div id="df"></div><div class="row" style="margin-top:16px"><button class="sec" id="dc">Cancel</button><button class="pri" id="dok">Save</button></div></dialog>
 <div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -108,7 +146,7 @@ const inr=n=>'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
 const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const LSK='vimal-gst-v1';
-let clients=[],bills=[],db=null,recent=[],dupOK='';
+let clients=[],bills=[],db=null,recent=[],dupOK='',cclients=[],challans=[],crecent=[],cdupOK='';
 const nowIso=()=>new Date().toISOString();
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
 /* ===== FIREBASE SETUP: paste your web-app config here ===== */
@@ -118,11 +156,12 @@ const ALLOWED_EMAILS=['shashank.freakyboy@gmail.com','vimal.industries2305@gmail
 firebase.initializeApp(CFG);
 const auth=firebase.auth();db=firebase.firestore();
 db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
-const CN=c=>c==='bills'?'gstBills':'gstClients';
+const CN=c=>({bills:'gstBills',clients:'gstClients',challans:'challans',cclients:'challanClients'})[c];
+const ARR=c=>({bills,clients,challans,cclients})[c];
 let unsub=[];
-async function put(coll,o){const a=coll==='bills'?bills:clients;const i=a.findIndex(x=>x.id===o.id);if(i<0)a.push(o);else a[i]=o;
+async function put(coll,o){const a=ARR(coll);const i=a.findIndex(x=>x.id===o.id);if(i<0)a.push(o);else a[i]=o;
  try{await db.collection(CN(coll)).doc(o.id).set(o)}catch(e){toast('Save failed ('+(e.code||'error')+')')}}
-async function rem(coll,id){const a=coll==='bills'?bills:clients;const i=a.findIndex(x=>x.id===id);if(i>=0)a.splice(i,1);
+async function rem(coll,id){const a=ARR(coll);const i=a.findIndex(x=>x.id===id);if(i>=0)a.splice(i,1);
  try{await db.collection(CN(coll)).doc(id).delete()}catch(e){toast('Delete failed ('+(e.code||'error')+')')}}
 function init(){
  $('#lb').onclick=async()=>{const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
@@ -130,22 +169,30 @@ function init(){
    else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')$('#lm').textContent='Sign-in failed: '+e.code}};
  $('#so').onclick=()=>auth.signOut();
  auth.onAuthStateChanged(u=>{unsub.forEach(f=>f());unsub=[];
-  if(!u){document.body.classList.remove('in');clients=[];bills=[];return}
+  if(!u){document.body.classList.remove('in');clients=[];bills=[];cclients=[];challans=[];return}
   const ok=!ALLOWED_EMAILS.length||ALLOWED_EMAILS.map(x=>x.toLowerCase()).includes((u.email||'').toLowerCase());
   if(!ok){$('#lm').textContent=u.email+' is not allowed to use this app.';auth.signOut();return}
   $('#lm').textContent='';document.body.classList.add('in');$('#mode').textContent=u.email;
   const err=e=>toast('Database error: '+(e.code||''));
   unsub.push(db.collection('gstClients').onSnapshot(s=>{clients=s.docs.map(d=>d.data());refresh()},err));
   unsub.push(db.collection('gstBills').onSnapshot(s=>{bills=s.docs.map(d=>d.data());refresh()},err));
-  scale()})}
+  unsub.push(db.collection('challanClients').onSnapshot(s=>{cclients=s.docs.map(d=>d.data());refresh()},err));
+  unsub.push(db.collection('challans').onSnapshot(s=>{challans=s.docs.map(d=>d.data());refresh()},err));
+  go('home');scale()})}
 /* nav */
 function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on',e.id==='p-'+p));
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
- if(p==='gen')renderStmt();scrollTo(0,0)}
+ const sc={home:'home',ca:'cha',cg:'cha',cb:'cha',cc:'cha'}[p]||'gst';
+ document.body.classList.remove('s-home','s-gst','s-cha');document.body.classList.add('s-'+sc);
+ $('#ttl').textContent={home:'Vimal Industries',gst:'GST Statements',cha:'Challan Entry'}[sc];
+ if(p==='gen')renderStmt();if(p==='cg')renderCG();scrollTo(0,0)}
 $('#nav').onclick=e=>{if(e.target.dataset.p)go(e.target.dataset.p)};
+$('#cnav').onclick=e=>{if(e.target.dataset.p)go(e.target.dataset.p)};
+$('#hb').onclick=()=>go('home');
+$('#p-home').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.go)};
 /* selects */
 function fillM(sel,all){sel.innerHTML=(all?'<option value="">All months</option>':'')+MN.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('')}
-function fillY(sel,all){const cy=new Date().getFullYear(),ys=new Set([cy-1,cy,cy+1]);bills.forEach(b=>ys.add(+b.date.slice(0,4)));
+function fillY(sel,all,arr){const cy=new Date().getFullYear(),ys=new Set([cy-1,cy,cy+1]);(arr||bills).forEach(b=>ys.add(+b.date.slice(0,4)));
  const v=sel.value||(all?'':String(cy));sel.innerHTML=(all?'<option value="">All years</option>':'')+[...ys].sort((a,b)=>b-a).map(y=>`<option>${y}</option>`).join('');sel.value=v}
 ['#g-m','#s-m'].forEach(s=>fillM($(s)));fillM($('#b-m'),1);
 const cm=String(new Date().getMonth()+1).padStart(2,'0');$('#g-m').value=$('#s-m').value=cm;$('#a-date').value=today();
@@ -154,7 +201,7 @@ function refresh(){
  $('#dl').innerHTML=sorted.map(c=>`<option value="${esc(c.name)}">`).join('');
  const bp=$('#b-p'),v=bp.value;bp.innerHTML='<option value="">All parties</option>'+sorted.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');bp.value=v;
  ['#g-y','#s-y'].forEach(s=>fillY($(s)));fillY($('#b-y'),1);
- newHint();renderRecent();renderBills();renderSum();renderCli();renderStmt()}
+ newHint();renderRecent();renderBills();renderSum();renderCli();renderStmt();refreshC()}
 const findC=n=>clients.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase());
 /* add bill */
 function newHint(){const n=$('#a-party').value.trim();$('#a-new').textContent=n&&!findC(n)?'New client "'+n+'" will be added':''}
@@ -174,7 +221,7 @@ function renderRecent(){const t=$('#a-recent');const r=recent.filter(x=>bills.so
  t.innerHTML=r.length?r.map(b=>`<tr><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.tax)}</td></tr>`).join(''):'<tr><td class="mu">Nothing saved yet</td></tr>'}
 /* generic dialog */
 function openForm(title,fields,cb,ok){$('#dt').textContent=title;
- $('#df').innerHTML=fields.map((f,i)=>f.msg?`<p>${esc(f.msg)}</p>`:`<label>${f.label}</label><input id="df${i}" type="${f.type||'text'}" ${f.list?'list="dl"':''} value="${esc(f.val)}">`).join('');
+ $('#df').innerHTML=fields.map((f,i)=>f.msg?`<p>${esc(f.msg)}</p>`:`<label>${f.label}</label><input id="df${i}" type="${f.type||'text'}" ${f.list?'list="'+(f.list===1?'dl':f.list)+'"':''} value="${esc(f.val)}">`).join('');
  $('#dok').textContent=ok||'Save';$('#dok').onclick=async()=>{const v=fields.map((f,i)=>f.msg?null:$('#df'+i).value.trim());if(await cb(v)!==false)$('#dlg').close()};
  $('#dc').onclick=()=>$('#dlg').close();$('#dlg').showModal()}
 /* statement */
@@ -193,13 +240,13 @@ function renderStmt(){const sh=$('#sheet');if(!$('#p-gen').classList.contains('o
  for(const[cols,fs]of tries){sh.style.setProperty('--fs',fs+'px');sh.innerHTML=slip(d,cols,total)+slip(d,cols,total)+slip(d,cols,total);
   if([...sh.children].every(s=>s.scrollHeight<=s.clientHeight+1))break}
  scale()}
-function scale(){const w=$('#pvh').clientWidth,s=Math.min(1,(w-2)/794);$('#sheet').style.transform='scale('+s+')';$('#pvh').style.height=(1118*s)+'px'}
+function scale(){[['#pvh','#sheet'],['#cpvh','#csheet']].forEach(([h,e])=>{const w=$(h).clientWidth;if(!w)return;const k=Math.min(1,(w-2)/794);$(e).style.transform='scale('+k+')';$(h).style.height=(1118*k)+'px'})}
 addEventListener('resize',scale);
 ['#g-party','#g-m','#g-y'].forEach(s=>$(s).addEventListener('input',renderStmt));
-function doPrint(){const o=document.getElementById('pf');if(o)o.remove();
+function doPrint(sel){const o=document.getElementById('pf');if(o)o.remove();
  const f=document.createElement('iframe');f.id='pf';f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
  try{const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('');const w=f.contentDocument;w.open();
- w.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GST Statement</title><style>'+css+'</style></head><body>'+$('#sheet').outerHTML+'</body></html>');w.close();
+ w.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GST Statement</title><style>'+css+'</style></head><body>'+$(sel||'#sheet').outerHTML+'</body></html>');w.close();
  setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){window.print()}},300)}catch(e){window.print()}}
 $('#g-print').onclick=()=>{const d=stmtData();if(!d.rows.length)return toast('No bills to print');renderStmt();doPrint()};
 $('#g-pdf').onclick=async()=>{const d=stmtData();if(!d.rows.length)return toast('No bills to print');
@@ -231,6 +278,15 @@ function renderSum(){const m=$('#s-m').value,y=$('#s-y').value,g={};
  $('#s-t').innerHTML='<tr><th>Party</th><th class="r">Bills</th><th class="r">Total GST</th></tr>'+(k.length?k.map(n=>`<tr class="click" data-n="${esc(n)}"><td>${esc(n)}</td><td class="r">${g[n].n}</td><td class="r">${inr(g[n].t)}</td></tr>`).join('')+`<tr><td><b>All parties</b></td><td class="r"><b>${k.reduce((s,n)=>s+g[n].n,0)}</b></td><td class="r"><b>${inr(k.reduce((s,n)=>s+g[n].t,0))}</b></td></tr>`:'<tr><td colspan="3" class="mu">No bills in this month</td></tr>')}
 ['#s-m','#s-y'].forEach(s=>$(s).addEventListener('input',renderSum));
 $('#s-t').onclick=e=>{const tr=e.target.closest('tr[data-n]');if(!tr)return;$('#g-party').value=tr.dataset.n;$('#g-m').value=$('#s-m').value;$('#g-y').value=$('#s-y').value;go('gen')};
+function dlCsv(rows,name){const t='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+function monthRows(){const m=$('#s-m').value,y=$('#s-y').value;return{m,y,r:bills.filter(b=>b.date.slice(0,4)===y&&b.date.slice(5,7)===m)}}
+$('#s-csv1').onclick=()=>{const{m,y,r}=monthRows();if(!r.length)return toast('No bills in this month');const g={};
+ r.forEach(b=>{(g[b.party]=g[b.party]||{n:0,t:0});g[b.party].n++;g[b.party].t+=Number(b.tax)});const k=Object.keys(g).sort((a,b)=>a.localeCompare(b));
+ dlCsv([['Party','Bills','Total GST'],...k.map(n=>[n,g[n].n,g[n].t]),['TOTAL',r.length,r.reduce((s,b)=>s+Number(b.tax),0)]],'GST_Summary_'+MN[+m-1]+'_'+y+'.csv')};
+$('#s-csv2').onclick=()=>{const{m,y,r}=monthRows();if(!r.length)return toast('No bills in this month');
+ r.sort((a,b)=>a.party.localeCompare(b.party)||a.date.localeCompare(b.date));
+ dlCsv([['Date','Party','Bill No.','Tax'],...r.map(b=>[fmtD(b.date),b.party,b.no,b.tax])],'GST_Bills_'+MN[+m-1]+'_'+y+'.csv')};
 /* clients */
 function renderCli(){const q=$('#c-q').value.toLowerCase();
  const r=clients.filter(c=>(c.name+' '+(c.gstin||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -245,5 +301,91 @@ function clientForm(c){const isNew=!c;c=c||{id:uid(),name:'',gstin:'',address:''
   if(renamed)for(const b of bills.filter(b=>b.partyId===c.id))await put('bills',{...b,party:v[0],updated:nowIso()});refresh()})}
 $('#c-add').onclick=()=>clientForm();
 $('#c-t').onclick=e=>{const c=clients.find(x=>x.id===e.target.dataset.c);if(c)clientForm(c)};
+/* ===== CHALLAN ===== */
+const findCC=n=>cclients.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase());
+['#cg-m','#cg-gm'].forEach(x=>fillM($(x)));fillM($('#cb-m'),1);
+$('#cg-m').value=$('#cg-gm').value=cm;$('#ca-date').value=today();
+function refreshC(){
+ const sorted=[...cclients].sort((a,b)=>a.name.localeCompare(b.name));
+ $('#dlc').innerHTML=sorted.map(c=>`<option value="${esc(c.name)}">`).join('');
+ const cp=$('#cb-p'),v=cp.value;cp.innerHTML='<option value="">All parties</option>'+sorted.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');cp.value=v;
+ fillY($('#cg-y'),0,challans);fillY($('#cg-gy'),0,bills);fillY($('#cb-y'),1,challans);
+ cHint();renderCRecent();renderCB();renderCC();renderCG()}
+function cHint(){const n=$('#ca-party').value.trim();$('#ca-new').textContent=n&&!findCC(n)?'New client "'+n+'" will be added':''}
+$('#ca-party').oninput=cHint;
+async function saveCh(){
+ const name=$('#ca-party').value.trim(),no=$('#ca-no').value.trim(),date=$('#ca-date').value,amt=parseFloat($('#ca-amt').value);
+ if(!name)return toast('Select a party');if(!no)return toast('Enter challan number');if(isNaN(amt)||amt<0)return toast('Enter amount');if(!date)return toast('Enter date');
+ let c=findCC(name);
+ if(c&&challans.some(x=>x.partyId===c.id&&x.no===no)&&cdupOK!==c.id+no){cdupOK=c.id+no;return toast('Challan '+no+' already exists for this party. Press Save again to add anyway.')}
+ cdupOK='';
+ if(!c){c={id:uid(),name,created:nowIso(),updated:nowIso()};await put('cclients',c)}
+ const x={id:uid(),partyId:c.id,party:c.name,no,date,amount:amt,created:nowIso(),updated:nowIso()};
+ await put('challans',x);crecent.unshift(x);crecent=crecent.slice(0,5);
+ $('#ca-no').value='';$('#ca-amt').value='';$('#ca-no').focus();toast('Saved '+no+' · '+inr(amt));refresh()}
+$('#ca-save').onclick=saveCh;$('#ca-amt').onkeydown=e=>{if(e.key==='Enter')saveCh()};$('#ca-no').onkeydown=e=>{if(e.key==='Enter')$('#ca-amt').focus()};
+function renderCRecent(){const r=crecent.filter(x=>challans.some(b=>b.id===x.id));
+ $('#ca-recent').innerHTML=r.length?r.map(b=>`<tr><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.amount)}</td></tr>`).join(''):'<tr><td class="mu">Nothing saved yet</td></tr>'}
+/* print challans */
+function cData(){const c=findCC($('#cg-party').value),m=$('#cg-m').value,y=$('#cg-y').value;
+ const rows=c?challans.filter(x=>x.partyId===c.id&&x.date.slice(0,4)===y&&x.date.slice(5,7)===m).sort((a,b)=>a.date.localeCompare(b.date)||a.no.localeCompare(b.no,undefined,{numeric:true})):[];
+ return{c,rows,label:MN[+m-1]+' '+y}}
+function gstInfo(){if(!$('#cg-gst').checked)return null;const g=findC($('#cg-gparty').value),m=$('#cg-gm').value,y=$('#cg-gy').value;if(!g)return{err:1};
+ const r=bills.filter(b=>b.partyId===g.id&&b.date.slice(0,4)===y&&b.date.slice(5,7)===m);
+ return{name:g.name,label:MN[+m-1]+' '+y,total:r.reduce((t,b)=>t+Number(b.tax),0),n:r.length}}
+function ctab(rows){return'<table><tr><th>Challan No.</th><th class="r">Amount</th></tr>'+rows.map(x=>`<tr><td>${esc(x.no)}</td><td class="r">${inr(x.amount)}</td></tr>`).join('')+'</table>'}
+function cpage(d,cols,foot){const per=Math.max(1,Math.ceil(d.rows.length/cols));let h='';
+ for(let k=0;k<cols;k++){const p=d.rows.slice(k*per,(k+1)*per);if(!p.length)break;h+=ctab(p)}
+ return`<div class="cp"><div class="pn">${esc(d.c.name)}</div><div class="pm">${d.label}</div><div class="cols">${h}</div><div class="cfoot">${foot}</div></div>`}
+function renderCG(){if(!$('#p-cg').classList.contains('on'))return;const sh=$('#csheet'),d=cData(),g=gstInfo();
+ $('#cg-note').textContent=g?(g.err?'Select the GST party':g.n?g.n+' GST bills found for '+g.name+' in '+g.label:'No GST bills found for '+g.name+' in '+g.label+' (GST will show ₹0)'):'';
+ if(!d.c||!d.rows.length){sh.innerHTML=`<div class="empty">${d.c?'No challans for '+esc(d.c.name)+' in '+d.label:'Select a party, month and year'}</div>`;scale();return}
+ const ct=d.rows.reduce((t,x)=>t+Number(x.amount),0);let foot;
+ if(g&&!g.err){const dif=(g.name!==d.c.name||g.label!==d.label)?` <span class="sm">(${esc(g.name)}${g.label!==d.label?', '+g.label:''})</span>`:'';
+  foot=`<div class="ctr"><span>TOTAL CHALLAN AMOUNT</span><b>${inr(ct)}</b></div><div class="ctr"><span>TOTAL GST${dif}</span><b>${inr(g.total)}</b></div><div class="ctr big"><span>GRAND TOTAL</span><b>${inr(ct+g.total)}</b></div>`}
+ else foot=`<div class="ctr big"><span>TOTAL AMOUNT</span><b>${inr(ct)}</b></div>`;
+ for(const[cols,fs]of[[1,18],[1,16],[1,14],[1,12],[2,14],[2,12],[2,11],[3,11],[3,10],[3,9]]){sh.style.setProperty('--fs',fs+'px');sh.innerHTML=cpage(d,cols,foot);const e=sh.firstChild;if(e.scrollHeight<=e.clientHeight+1)break}
+ scale()}
+let gAuto=true;$('#cg-gparty').addEventListener('input',()=>{gAuto=false});
+const syncSel=(a,b)=>{if([...$(b).options].some(o=>o.value===$(a).value))$(b).value=$(a).value};
+$('#cg-party').addEventListener('input',()=>{if(gAuto){const g=findC($('#cg-party').value);$('#cg-gparty').value=g?g.name:''}});
+['#cg-m','#cg-y'].forEach(x=>$(x).addEventListener('input',()=>{syncSel('#cg-m','#cg-gm');syncSel('#cg-y','#cg-gy')}));
+$('#cg-gst').addEventListener('change',()=>{$('#cg-gbox').style.display=$('#cg-gst').checked?'block':'none'});
+['#cg-party','#cg-m','#cg-y','#cg-gst','#cg-gparty','#cg-gm','#cg-gy'].forEach(x=>{$(x).addEventListener('input',renderCG);$(x).addEventListener('change',renderCG)});
+function cReady(){const d=cData();if(!d.rows.length){toast('No challans to print');return false}const g=gstInfo();if(g&&g.err){toast('Select the GST party');return false}renderCG();return true}
+$('#cg-print').onclick=()=>{if(cReady())doPrint('#csheet')};
+$('#cg-pdf').onclick=async()=>{if(!cReady())return;const d=cData();
+ if(!window.html2canvas||!window.jspdf)return toast('PDF library did not load');
+ const sh=$('#csheet'),old=sh.style.transform;sh.style.transform='none';
+ try{const cv=await html2canvas(sh,{scale:2,backgroundColor:'#fff'});const pdf=new jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);pdf.save((d.c.name+'_Challan_'+d.label).replace(/[^\w]+/g,'_')+'.pdf')}
+ catch(e){toast('Could not create PDF')}
+ sh.style.transform=old;scale()};
+/* all challans */
+function renderCB(){const q=$('#cb-q').value.toLowerCase(),p=$('#cb-p').value,m=$('#cb-m').value,y=$('#cb-y').value;
+ const r=challans.filter(b=>(!p||b.partyId===p)&&(!m||b.date.slice(5,7)===m)&&(!y||b.date.slice(0,4)===y)&&(!q||(b.party+' '+b.no).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.created.localeCompare(a.created));
+ $('#cb-t').innerHTML='<tr><th>Date</th><th>Party</th><th>Challan No.</th><th class="r">Amount</th><th></th></tr>'+r.map(b=>`<tr><td>${fmtD(b.date)}</td><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.amount)}</td><td class="r"><button class="lnk" data-e="${b.id}">Edit</button><button class="lnk d" data-d="${b.id}">Delete</button></td></tr>`).join('');
+ $('#cb-s').textContent=r.length+' challans · '+inr(r.reduce((t,b)=>t+Number(b.amount),0))}
+['#cb-q','#cb-p','#cb-m','#cb-y'].forEach(x=>$(x).addEventListener('input',renderCB));
+$('#cb-t').onclick=e=>{const b=challans.find(x=>x.id===(e.target.dataset.e||e.target.dataset.d));if(!b)return;
+ if(e.target.dataset.e)openForm('Edit challan',[{label:'Party',val:b.party,list:'dlc'},{label:'Challan No.',val:b.no},{label:'Date',val:b.date,type:'date'},{label:'Amount (₹)',val:b.amount,type:'number'}],async v=>{
+  const amt=parseFloat(v[3]);if(!v[0]||!v[1]||!v[2]||isNaN(amt)){toast('Fill all fields');return false}
+  let c=findCC(v[0]);if(!c){c={id:uid(),name:v[0],created:nowIso(),updated:nowIso()};await put('cclients',c)}
+  await put('challans',{...b,partyId:c.id,party:c.name,no:v[1],date:v[2],amount:amt,updated:nowIso()});refresh()});
+ else openForm('Delete challan?',[{msg:b.party+' · Challan '+b.no+' · '+inr(b.amount)}],async()=>{await rem('challans',b.id);refresh()},'Delete')};
+/* challan clients */
+function renderCC(){const q=$('#cc-q').value.toLowerCase();
+ const r=cclients.filter(c=>c.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+ $('#cc-t').innerHTML='<tr><th>Party</th><th class="r">Challans</th><th class="r">Total Amount</th><th></th></tr>'+r.map(c=>{const xs=challans.filter(b=>b.partyId===c.id);
+  return`<tr><td>${esc(c.name)}</td><td class="r">${xs.length}</td><td class="r">${inr(xs.reduce((t,b)=>t+Number(b.amount),0))}</td><td class="r"><button class="lnk" data-c="${c.id}">Edit</button></td></tr>`}).join('')}
+$('#cc-q').oninput=renderCC;
+function ccForm(c){const isNew=!c;c=c||{id:uid(),name:'',created:nowIso()};
+ openForm(isNew?'Add challan client':'Edit challan client',[{label:'Party Name',val:c.name}],async v=>{
+  if(!v[0]){toast('Enter party name');return false}
+  const dup=findCC(v[0]);if(dup&&dup.id!==c.id){toast('Client already exists');return false}
+  const renamed=!isNew&&c.name!==v[0];await put('cclients',{...c,name:v[0],updated:nowIso()});
+  if(renamed)for(const b of challans.filter(b=>b.partyId===c.id))await put('challans',{...b,party:v[0],updated:nowIso()});refresh()})}
+$('#cc-add').onclick=()=>ccForm();
+$('#cc-t').onclick=e=>{const c=cclients.find(x=>x.id===e.target.dataset.c);if(c)ccForm(c)};
 init();
 </script></body></html>
