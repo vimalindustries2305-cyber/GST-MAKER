@@ -69,6 +69,9 @@ body:not(.s-gst) #nav,body:not(.s-cha) #cnav,body.s-home #hb{display:none}
 .ctr{display:flex;justify-content:space-between;gap:1em;margin-top:.45em;font-size:1.1em}
 .ctr.big{font-size:1.35em;font-weight:800;border-top:2px solid #000;padding-top:.3em;margin-top:.6em}
 .sm{font-size:.7em;font-weight:400}
+#csheet.multi{height:auto}
+.multi .cp{height:296mm;break-after:page;page-break-after:always}
+.multi .cp:last-child{break-after:auto;page-break-after:auto}
 @page{size:210mm 297mm portrait;margin:0}
 @media print{
  html,body{background:#fff !important;margin:0 !important;padding:0 !important}
@@ -240,7 +243,7 @@ function renderStmt(){const sh=$('#sheet');if(!$('#p-gen').classList.contains('o
  for(const[cols,fs]of tries){sh.style.setProperty('--fs',fs+'px');sh.innerHTML=slip(d,cols,total)+slip(d,cols,total)+slip(d,cols,total);
   if([...sh.children].every(s=>s.scrollHeight<=s.clientHeight+1))break}
  scale()}
-function scale(){[['#pvh','#sheet'],['#cpvh','#csheet']].forEach(([h,e])=>{const w=$(h).clientWidth;if(!w)return;const k=Math.min(1,(w-2)/794);$(e).style.transform='scale('+k+')';$(h).style.height=(1118*k)+'px'})}
+function scale(){[['#pvh','#sheet'],['#cpvh','#csheet']].forEach(([h,e])=>{const w=$(h).clientWidth;if(!w)return;const k=Math.min(1,(w-2)/794);$(e).style.transform='scale('+k+')';$(h).style.height=(($(e).offsetHeight||1118)*k)+'px'})}
 addEventListener('resize',scale);
 ['#g-party','#g-m','#g-y'].forEach(s=>$(s).addEventListener('input',renderStmt));
 function doPrint(sel){const o=document.getElementById('pf');if(o)o.remove();
@@ -334,17 +337,26 @@ function gstInfo(){if(!$('#cg-gst').checked)return null;const g=findC($('#cg-gpa
  const r=bills.filter(b=>b.partyId===g.id&&b.date.slice(0,4)===y&&b.date.slice(5,7)===m);
  return{name:g.name,label:MN[+m-1]+' '+y,total:r.reduce((t,b)=>t+Number(b.tax),0),n:r.length}}
 function ctab(rows){return'<table><tr><th>Challan No.</th><th class="r">Amount</th></tr>'+rows.map(x=>`<tr><td>${esc(x.no)}</td><td class="r">${inr(x.amount)}</td></tr>`).join('')+'</table>'}
-function cpage(d,cols,foot){const per=Math.max(1,Math.ceil(d.rows.length/cols));let h='';
+function cpage(d,cols,foot,sfx){const per=Math.max(1,Math.ceil(d.rows.length/cols));let h='';
  for(let k=0;k<cols;k++){const p=d.rows.slice(k*per,(k+1)*per);if(!p.length)break;h+=ctab(p)}
- return`<div class="cp"><div class="pn">${esc(d.c.name)}</div><div class="pm">${d.label}</div><div class="cols">${h}</div><div class="cfoot">${foot}</div></div>`}
-function renderCG(){if(!$('#p-cg').classList.contains('on'))return;const sh=$('#csheet'),d=cData(),g=gstInfo();
+ return`<div class="cp"><div class="pn">${esc(d.c.name)}</div><div class="pm">${d.label}${sfx||''}</div><div class="cols">${h}</div><div class="cfoot">${foot}</div></div>`}
+function renderCG(){if(!$('#p-cg').classList.contains('on'))return;const sh=$('#csheet'),d=cData(),g=gstInfo();sh.classList.remove('multi');
  $('#cg-note').textContent=g?(g.err?'Select the GST party':g.n?g.n+' GST bills found for '+g.name+' in '+g.label:'No GST bills found for '+g.name+' in '+g.label+' (GST will show ₹0)'):'';
  if(!d.c||!d.rows.length){sh.innerHTML=`<div class="empty">${d.c?'No challans for '+esc(d.c.name)+' in '+d.label:'Select a party, month and year'}</div>`;scale();return}
  const ct=d.rows.reduce((t,x)=>t+Number(x.amount),0);let foot;
  if(g&&!g.err){const dif=(g.name!==d.c.name||g.label!==d.label)?` <span class="sm">(${esc(g.name)}${g.label!==d.label?', '+g.label:''})</span>`:'';
   foot=`<div class="ctr"><span>TOTAL CHALLAN AMOUNT</span><b>${inr(ct)}</b></div><div class="ctr"><span>TOTAL GST${dif}</span><b>${inr(g.total)}</b></div><div class="ctr big"><span>GRAND TOTAL</span><b>${inr(ct+g.total)}</b></div>`}
  else foot=`<div class="ctr big"><span>TOTAL AMOUNT</span><b>${inr(ct)}</b></div>`;
- for(const[cols,fs]of[[1,18],[1,16],[1,14],[1,12],[2,14],[2,12],[2,11],[3,11],[3,10],[3,9]]){sh.style.setProperty('--fs',fs+'px');sh.innerHTML=cpage(d,cols,foot);const e=sh.firstChild;if(e.scrollHeight<=e.clientHeight+1)break}
+ let ok=false;
+ for(const[cols,fs]of[[1,18],[1,16],[1,14],[1,12],[2,14],[2,12],[2,11],[3,11]]){sh.style.setProperty('--fs',fs+'px');sh.innerHTML=cpage(d,cols,foot);const e=sh.firstChild;if(e.scrollHeight<=e.clientHeight+1){ok=true;break}}
+ if(!ok){const cols=2,all=d.rows;let i=0;sh.style.setProperty('--fs','13px');
+  const fit=(n,last)=>{sh.innerHTML=cpage({...d,rows:all.slice(i,i+n)},cols,last?foot:'');const e=sh.firstChild;return e.scrollHeight<=e.clientHeight+1};
+  const chunks=[];
+  while(i<all.length){const rem=all.length-i;let n;
+   if(fit(rem,true))n=rem;else{let lo=1,hi=rem-1;n=1;while(lo<=hi){const mid=(lo+hi)>>1;if(fit(mid,false)){n=mid;lo=mid+1}else hi=mid-1}}
+   chunks.push(all.slice(i,i+n));i+=n}
+  sh.classList.add('multi');
+  sh.innerHTML=chunks.map((c,k)=>cpage({...d,rows:c},cols,k===chunks.length-1?foot:'',' · Page '+(k+1)+' of '+chunks.length)).join('')}
  scale()}
 let gAuto=true;$('#cg-gparty').addEventListener('input',()=>{gAuto=false});
 const syncSel=(a,b)=>{if([...$(b).options].some(o=>o.value===$(a).value))$(b).value=$(a).value};
@@ -357,8 +369,9 @@ $('#cg-print').onclick=()=>{if(cReady())doPrint('#csheet')};
 $('#cg-pdf').onclick=async()=>{if(!cReady())return;const d=cData();
  if(!window.html2canvas||!window.jspdf)return toast('PDF library did not load');
  const sh=$('#csheet'),old=sh.style.transform;sh.style.transform='none';
- try{const cv=await html2canvas(sh,{scale:2,backgroundColor:'#fff'});const pdf=new jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
-  pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);pdf.save((d.c.name+'_Challan_'+d.label).replace(/[^\w]+/g,'_')+'.pdf')}
+ try{const pdf=new jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});const pgs=[...sh.querySelectorAll('.cp')];
+  for(let k=0;k<pgs.length;k++){const cv=await html2canvas(pgs[k],{scale:2,backgroundColor:'#fff'});if(k)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297)}
+  pdf.save((d.c.name+'_Challan_'+d.label).replace(/[^\w]+/g,'_')+'.pdf')}
  catch(e){toast('Could not create PDF')}
  sh.style.transform=old;scale()};
 /* all challans */
