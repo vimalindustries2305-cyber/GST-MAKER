@@ -83,7 +83,7 @@ body:not(.s-gst) #nav,body:not(.s-cha) #cnav,body.s-home #hb{display:none}
 }
 </style></head><body>
 <header><h1><span><button class="lnk" id="hb">⌂ Home</button><span id="ttl">GST Statements</span></span><span><span id="mode"></span> <button class="lnk" id="so">Sign out</button></span></h1>
-<nav id="nav"><button data-p="add" class="on">Add Bill</button><button data-p="gen">Generate Statement</button><button data-p="bills">All Bills</button><button data-p="sum">Monthly Summary</button><button data-p="cli">Clients</button></nav><nav id="cnav"><button data-p="ca" class="on">Add Challan</button><button data-p="cg">Print Challans</button><button data-p="cb">All Challans</button><button data-p="cc">Challan Clients</button></nav></header>
+<nav id="nav"><button data-p="add" class="on">Add Bill</button><button data-p="gen">Generate Statement</button><button data-p="bills">All Bills</button><button data-p="sum">Monthly Summary</button><button data-p="cli">Clients</button></nav><nav id="cnav"><button data-p="ca" class="on">Add Challan</button><button data-p="cg">Print Challans</button><button data-p="cs">Monthly Summary</button><button data-p="cb">All Challans</button><button data-p="cc">Challan Clients</button></nav></header>
 <main>
 <section id="p-add" class="page on"><div class="card">
 <label>Party Name</label><input id="a-party" list="dl" placeholder="Type to search or add new client" autocomplete="off">
@@ -126,6 +126,9 @@ body:not(.s-gst) #nav,body:not(.s-cha) #cnav,body.s-home #hb{display:none}
 <div class="row"><div><label>GST month</label><select id="cg-gm"></select></div><div><label>GST year</label><select id="cg-gy"></select></div></div><div id="cg-note" class="mu" style="margin-top:6px"></div></div>
 <div class="row" style="margin-top:14px"><button class="pri" id="cg-print">PRINT (1 A4)</button><button class="sec" id="cg-pdf">DOWNLOAD PDF</button></div></div>
 <div id="cpvh"><div id="csheet"></div></div></section>
+<section id="p-cs" class="page"><div class="card"><div class="row"><div><label>Month</label><select id="cs-m"></select></div><div><label>Year</label><select id="cs-y"></select></div></div>
+<div class="row" style="margin-top:14px"><button class="sec" id="cs-csv1">Download summary (CSV)</button><button class="sec" id="cs-csv2">Download all challans (CSV)</button></div></div>
+<div class="card"><div class="tw"><table class="l" id="cs-t"></table></div></div></section>
 <section id="p-cb" class="page"><div class="card"><input id="cb-q" placeholder="Search party or challan no.">
 <div class="row" style="margin-top:8px"><select id="cb-p"></select><select id="cb-m"></select><select id="cb-y"></select></div></div>
 <div class="card"><div class="tw"><table class="l" id="cb-t"></table></div><div class="mu" id="cb-s" style="margin-top:8px"></div></div></section>
@@ -185,7 +188,7 @@ function init(){
 /* nav */
 function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on',e.id==='p-'+p));
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
- const sc={home:'home',ca:'cha',cg:'cha',cb:'cha',cc:'cha'}[p]||'gst';
+ const sc={home:'home',ca:'cha',cg:'cha',cs:'cha',cb:'cha',cc:'cha'}[p]||'gst';
  document.body.classList.remove('s-home','s-gst','s-cha');document.body.classList.add('s-'+sc);
  $('#ttl').textContent={home:'Vimal Industries',gst:'GST Statements',cha:'Challan Entry'}[sc];
  if(p==='gen')renderStmt();if(p==='cg')renderCG();scrollTo(0,0)}
@@ -213,7 +216,7 @@ async function saveBill(){
  const name=$('#a-party').value.trim(),no=$('#a-no').value.trim(),date=$('#a-date').value,tax=parseFloat($('#a-tax').value);
  if(!name)return toast('Select a party');if(!no)return toast('Enter bill number');if(!date)return toast('Enter bill date');if(isNaN(tax)||tax<0)return toast('Enter tax amount');
  let c=findC(name);
- if(c&&bills.some(b=>b.partyId===c.id&&b.no===no)&&dupOK!==c.id+no){dupOK=c.id+no;return toast('Bill '+no+' already exists for this party. Press Save again to add anyway.')}
+ if(c&&bills.some(b=>b.partyId===c.id&&b.no===no&&near(b.date,date))&&dupOK!==c.id+no){dupOK=c.id+no;return toast('Bill '+no+' was already entered for this party around this date. Press Save again to add anyway.')}
  dupOK='';
  if(!c){c={id:uid(),name,gstin:'',address:'',created:nowIso(),updated:nowIso()};await put('clients',c)}
  const b={id:uid(),partyId:c.id,party:c.name,no,date,tax,created:nowIso(),updated:nowIso()};
@@ -305,22 +308,23 @@ function clientForm(c){const isNew=!c;c=c||{id:uid(),name:'',gstin:'',address:''
 $('#c-add').onclick=()=>clientForm();
 $('#c-t').onclick=e=>{const c=clients.find(x=>x.id===e.target.dataset.c);if(c)clientForm(c)};
 /* ===== CHALLAN ===== */
+const near=(a,b)=>Math.abs(new Date(a)-new Date(b))<=183*864e5;
 const findCC=n=>cclients.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase());
-['#cg-m','#cg-gm'].forEach(x=>fillM($(x)));fillM($('#cb-m'),1);
-$('#cg-m').value=$('#cg-gm').value=cm;$('#ca-date').value=today();
+['#cg-m','#cg-gm','#cs-m'].forEach(x=>fillM($(x)));fillM($('#cb-m'),1);
+$('#cg-m').value=$('#cg-gm').value=$('#cs-m').value=cm;$('#ca-date').value=today();
 function refreshC(){
  const sorted=[...cclients].sort((a,b)=>a.name.localeCompare(b.name));
  $('#dlc').innerHTML=sorted.map(c=>`<option value="${esc(c.name)}">`).join('');
  const cp=$('#cb-p'),v=cp.value;cp.innerHTML='<option value="">All parties</option>'+sorted.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');cp.value=v;
- fillY($('#cg-y'),0,challans);fillY($('#cg-gy'),0,bills);fillY($('#cb-y'),1,challans);
- cHint();renderCRecent();renderCB();renderCC();renderCG()}
+ fillY($('#cg-y'),0,challans);fillY($('#cg-gy'),0,bills);fillY($('#cb-y'),1,challans);fillY($('#cs-y'),0,challans);
+ cHint();renderCRecent();renderCB();renderCC();renderCG();renderCS()}
 function cHint(){const n=$('#ca-party').value.trim();$('#ca-new').textContent=n&&!findCC(n)?'New client "'+n+'" will be added':''}
 $('#ca-party').oninput=cHint;
 async function saveCh(){
  const name=$('#ca-party').value.trim(),no=$('#ca-no').value.trim(),date=$('#ca-date').value,amt=parseFloat($('#ca-amt').value);
  if(!name)return toast('Select a party');if(!no)return toast('Enter challan number');if(isNaN(amt)||amt<0)return toast('Enter amount');if(!date)return toast('Enter date');
  let c=findCC(name);
- if(c&&challans.some(x=>x.partyId===c.id&&x.no===no)&&cdupOK!==c.id+no){cdupOK=c.id+no;return toast('Challan '+no+' already exists for this party. Press Save again to add anyway.')}
+ if(c&&challans.some(x=>x.partyId===c.id&&x.no===no&&near(x.date,date))&&cdupOK!==c.id+no){cdupOK=c.id+no;return toast('Challan '+no+' was already entered for this party around this date. Press Save again to add anyway.')}
  cdupOK='';
  if(!c){c={id:uid(),name,created:nowIso(),updated:nowIso()};await put('cclients',c)}
  const x={id:uid(),partyId:c.id,party:c.name,no,date,amount:amt,created:nowIso(),updated:nowIso()};
@@ -400,5 +404,19 @@ function ccForm(c){const isNew=!c;c=c||{id:uid(),name:'',created:nowIso()};
   if(renamed)for(const b of challans.filter(b=>b.partyId===c.id))await put('challans',{...b,party:v[0],updated:nowIso()});refresh()})}
 $('#cc-add').onclick=()=>ccForm();
 $('#cc-t').onclick=e=>{const c=cclients.find(x=>x.id===e.target.dataset.c);if(c)ccForm(c)};
+/* challan monthly summary */
+function csRows(){const m=$('#cs-m').value,y=$('#cs-y').value;return{m,y,r:challans.filter(x=>x.date.slice(0,4)===y&&x.date.slice(5,7)===m)}}
+function csGroup(r){const g={};r.forEach(x=>{(g[x.party]=g[x.party]||{n:0,t:0});g[x.party].n++;g[x.party].t+=Number(x.amount)});return g}
+function renderCS(){const g=csGroup(csRows().r),k=Object.keys(g).sort((a,b)=>a.localeCompare(b));
+ $('#cs-t').innerHTML='<tr><th>Party</th><th class="r">Challans</th><th class="r">Total Amount</th></tr>'+(k.length?k.map(n=>`<tr class="click" data-n="${esc(n)}"><td>${esc(n)}</td><td class="r">${g[n].n}</td><td class="r">${inr(g[n].t)}</td></tr>`).join('')+`<tr><td><b>All parties</b></td><td class="r"><b>${k.reduce((t,n)=>t+g[n].n,0)}</b></td><td class="r"><b>${inr(k.reduce((t,n)=>t+g[n].t,0))}</b></td></tr>`:'<tr><td colspan="3" class="mu">No challans in this month</td></tr>')}
+['#cs-m','#cs-y'].forEach(x=>$(x).addEventListener('input',renderCS));
+$('#cs-t').onclick=e=>{const tr=e.target.closest('tr[data-n]');if(!tr)return;
+ $('#cg-party').value=tr.dataset.n;$('#cg-m').value=$('#cs-m').value;$('#cg-y').value=$('#cs-y').value;
+ ['#cg-party','#cg-m','#cg-y'].forEach(x=>$(x).dispatchEvent(new Event('input')));go('cg')};
+$('#cs-csv1').onclick=()=>{const{m,y,r}=csRows();if(!r.length)return toast('No challans in this month');const g=csGroup(r),k=Object.keys(g).sort((a,b)=>a.localeCompare(b));
+ dlCsv([['Party','Challans','Total Amount'],...k.map(n=>[n,g[n].n,g[n].t]),['TOTAL',r.length,r.reduce((t,x)=>t+Number(x.amount),0)]],'Challan_Summary_'+MN[+m-1]+'_'+y+'.csv')};
+$('#cs-csv2').onclick=()=>{const{m,y,r}=csRows();if(!r.length)return toast('No challans in this month');
+ r.sort((a,b)=>a.party.localeCompare(b.party)||a.date.localeCompare(b.date));
+ dlCsv([['Date','Party','Challan No.','Amount'],...r.map(x=>[fmtD(x.date),x.party,x.no,x.amount])],'Challans_'+MN[+m-1]+'_'+y+'.csv')};
 init();
 </script></body></html>
