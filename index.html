@@ -147,12 +147,15 @@ body:not(.s-gst) #nav,body:not(.s-cha) #cnav,body.s-home #hb{display:none}
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cmpNo=(a,b)=>String(a.no).localeCompare(String(b.no),undefined,{numeric:true});
+const nk=v=>/^\d+$/.test(String(v).trim())?String(+v):String(v).trim().toLowerCase();
+const mon=d=>MN[+d.slice(5,7)-1]+' '+d.slice(0,4);
 const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const inr=n=>'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
 const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const LSK='vimal-gst-v1';
-let clients=[],bills=[],db=null,recent=[],dupOK='',cclients=[],challans=[],crecent=[],cdupOK='';
+let clients=[],bills=[],db=null,recent=[],cclients=[],challans=[],crecent=[];
 const nowIso=()=>new Date().toISOString();
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
 /* ===== FIREBASE SETUP: paste your web-app config here ===== */
@@ -215,9 +218,8 @@ $('#a-party').oninput=newHint;
 async function saveBill(){
  const name=$('#a-party').value.trim(),no=$('#a-no').value.trim(),date=$('#a-date').value,tax=parseFloat($('#a-tax').value);
  if(!name)return toast('Select a party');if(!no)return toast('Enter bill number');if(!date)return toast('Enter bill date');if(isNaN(tax)||tax<0)return toast('Enter tax amount');
+ {const x=bills.find(b=>nk(b.no)===nk(no)&&b.date.slice(0,7)===date.slice(0,7));if(x)return toast('Bill '+no+' is already entered for '+x.party+' in '+mon(date))}
  let c=findC(name);
- if(c&&bills.some(b=>b.partyId===c.id&&b.no===no&&near(b.date,date))&&dupOK!==c.id+no){dupOK=c.id+no;return toast('Bill '+no+' was already entered for this party around this date. Press Save again to add anyway.')}
- dupOK='';
  if(!c){c={id:uid(),name,gstin:'',address:'',created:nowIso(),updated:nowIso()};await put('clients',c)}
  const b={id:uid(),partyId:c.id,party:c.name,no,date,tax,created:nowIso(),updated:nowIso()};
  await put('bills',b);recent.unshift(b);recent=recent.slice(0,5);
@@ -232,7 +234,7 @@ function openForm(title,fields,cb,ok){$('#dt').textContent=title;
  $('#dc').onclick=()=>$('#dlg').close();$('#dlg').showModal()}
 /* statement */
 function stmtData(){const c=findC($('#g-party').value),m=$('#g-m').value,y=$('#g-y').value;
- const rows=c?bills.filter(b=>b.partyId===c.id&&b.date.slice(0,4)===y&&b.date.slice(5,7)===m).sort((a,b)=>a.date.localeCompare(b.date)||a.no.localeCompare(b.no,undefined,{numeric:true})):[];
+ const rows=c?bills.filter(b=>b.partyId===c.id&&b.date.slice(0,4)===y&&b.date.slice(5,7)===m).sort(cmpNo):[];
  return{c,rows,label:MN[+m-1]+' '+y}}
 function slip(d,cols,total){const per=Math.max(1,Math.ceil(d.rows.length/cols));let h='';
  for(let k=0;k<cols;k++){const part=d.rows.slice(k*per,(k+1)*per);if(!part.length)break;
@@ -267,13 +269,14 @@ $('#g-pdf').onclick=async()=>{const d=stmtData();if(!d.rows.length)return toast(
 /* all bills */
 const fmtD=s=>s.slice(8,10)+'-'+s.slice(5,7)+'-'+s.slice(0,4);
 function renderBills(){const q=$('#b-q').value.toLowerCase(),p=$('#b-p').value,m=$('#b-m').value,y=$('#b-y').value;
- const r=bills.filter(b=>(!p||b.partyId===p)&&(!m||b.date.slice(5,7)===m)&&(!y||b.date.slice(0,4)===y)&&(!q||(b.party+' '+b.no).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.created.localeCompare(a.created));
+ const r=bills.filter(b=>(!p||b.partyId===p)&&(!m||b.date.slice(5,7)===m)&&(!y||b.date.slice(0,4)===y)&&(!q||(b.party+' '+b.no).toLowerCase().includes(q))).sort((a,b)=>cmpNo(a,b)||a.party.localeCompare(b.party)||a.date.localeCompare(b.date));
  $('#b-t').innerHTML='<tr><th>Date</th><th>Party</th><th>Bill No.</th><th class="r">Tax</th><th></th></tr>'+r.map(b=>`<tr><td>${fmtD(b.date)}</td><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.tax)}</td><td class="r"><button class="lnk" data-e="${b.id}">Edit</button><button class="lnk d" data-d="${b.id}">Delete</button></td></tr>`).join('');
  $('#b-s').textContent=r.length+' bills · '+inr(r.reduce((s,b)=>s+Number(b.tax),0))}
 ['#b-q','#b-p','#b-m','#b-y'].forEach(s=>$(s).addEventListener('input',renderBills));
 $('#b-t').onclick=e=>{const b=bills.find(x=>x.id===(e.target.dataset.e||e.target.dataset.d));if(!b)return;
  if(e.target.dataset.e)openForm('Edit bill',[{label:'Party',val:b.party,list:1},{label:'Bill No.',val:b.no},{label:'Bill Date',val:b.date,type:'date'},{label:'Tax (₹)',val:b.tax,type:'number'}],async v=>{
   const tax=parseFloat(v[3]);if(!v[0]||!v[1]||!v[2]||isNaN(tax)){toast('Fill all fields');return false}
+  {const x=bills.find(o=>o.id!==b.id&&nk(o.no)===nk(v[1])&&o.date.slice(0,7)===v[2].slice(0,7));if(x){toast('Bill '+v[1]+' is already entered for '+x.party+' in '+mon(v[2]));return false}}
   let c=findC(v[0]);if(!c){c={id:uid(),name:v[0],gstin:'',address:'',created:nowIso(),updated:nowIso()};await put('clients',c)}
   await put('bills',{...b,partyId:c.id,party:c.name,no:v[1],date:v[2],tax,updated:nowIso()});refresh()});
  else openForm('Delete bill?',[{msg:b.party+' · Bill '+b.no+' · '+inr(b.tax)}],async()=>{await rem('bills',b.id);refresh()},'Delete')};
@@ -291,7 +294,7 @@ $('#s-csv1').onclick=()=>{const{m,y,r}=monthRows();if(!r.length)return toast('No
  r.forEach(b=>{(g[b.party]=g[b.party]||{n:0,t:0});g[b.party].n++;g[b.party].t+=Number(b.tax)});const k=Object.keys(g).sort((a,b)=>a.localeCompare(b));
  dlCsv([['Party','Bills','Total GST'],...k.map(n=>[n,g[n].n,g[n].t]),['TOTAL',r.length,r.reduce((s,b)=>s+Number(b.tax),0)]],'GST_Summary_'+MN[+m-1]+'_'+y+'.csv')};
 $('#s-csv2').onclick=()=>{const{m,y,r}=monthRows();if(!r.length)return toast('No bills in this month');
- r.sort((a,b)=>a.party.localeCompare(b.party)||a.date.localeCompare(b.date));
+ r.sort((a,b)=>cmpNo(a,b)||a.party.localeCompare(b.party));
  dlCsv([['Date','Party','Bill No.','Tax'],...r.map(b=>[fmtD(b.date),b.party,b.no,b.tax])],'GST_Bills_'+MN[+m-1]+'_'+y+'.csv')};
 /* clients */
 function renderCli(){const q=$('#c-q').value.toLowerCase();
@@ -308,7 +311,6 @@ function clientForm(c){const isNew=!c;c=c||{id:uid(),name:'',gstin:'',address:''
 $('#c-add').onclick=()=>clientForm();
 $('#c-t').onclick=e=>{const c=clients.find(x=>x.id===e.target.dataset.c);if(c)clientForm(c)};
 /* ===== CHALLAN ===== */
-const near=(a,b)=>Math.abs(new Date(a)-new Date(b))<=183*864e5;
 const findCC=n=>cclients.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase());
 ['#cg-m','#cg-gm','#cs-m'].forEach(x=>fillM($(x)));fillM($('#cb-m'),1);
 $('#cg-m').value=$('#cg-gm').value=$('#cs-m').value=cm;$('#ca-date').value=today();
@@ -323,9 +325,8 @@ $('#ca-party').oninput=cHint;
 async function saveCh(){
  const name=$('#ca-party').value.trim(),no=$('#ca-no').value.trim(),date=$('#ca-date').value,amt=parseFloat($('#ca-amt').value);
  if(!name)return toast('Select a party');if(!no)return toast('Enter challan number');if(isNaN(amt)||amt<0)return toast('Enter amount');if(!date)return toast('Enter date');
+ {const x=challans.find(b=>nk(b.no)===nk(no)&&b.date.slice(0,7)===date.slice(0,7));if(x)return toast('Challan '+no+' is already entered for '+x.party+' in '+mon(date))}
  let c=findCC(name);
- if(c&&challans.some(x=>x.partyId===c.id&&x.no===no&&near(x.date,date))&&cdupOK!==c.id+no){cdupOK=c.id+no;return toast('Challan '+no+' was already entered for this party around this date. Press Save again to add anyway.')}
- cdupOK='';
  if(!c){c={id:uid(),name,created:nowIso(),updated:nowIso()};await put('cclients',c)}
  const x={id:uid(),partyId:c.id,party:c.name,no,date,amount:amt,created:nowIso(),updated:nowIso()};
  await put('challans',x);crecent.unshift(x);crecent=crecent.slice(0,5);
@@ -335,7 +336,7 @@ function renderCRecent(){const r=crecent.filter(x=>challans.some(b=>b.id===x.id)
  $('#ca-recent').innerHTML=r.length?r.map(b=>`<tr><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.amount)}</td></tr>`).join(''):'<tr><td class="mu">Nothing saved yet</td></tr>'}
 /* print challans */
 function cData(){const c=findCC($('#cg-party').value),m=$('#cg-m').value,y=$('#cg-y').value;
- const rows=c?challans.filter(x=>x.partyId===c.id&&x.date.slice(0,4)===y&&x.date.slice(5,7)===m).sort((a,b)=>a.date.localeCompare(b.date)||a.no.localeCompare(b.no,undefined,{numeric:true})):[];
+ const rows=c?challans.filter(x=>x.partyId===c.id&&x.date.slice(0,4)===y&&x.date.slice(5,7)===m).sort(cmpNo):[];
  return{c,rows,label:MN[+m-1]+' '+y}}
 function gstInfo(){if(!$('#cg-gst').checked)return null;const g=findC($('#cg-gparty').value),m=$('#cg-gm').value,y=$('#cg-gy').value;if(!g)return{err:1};
  const r=bills.filter(b=>b.partyId===g.id&&b.date.slice(0,4)===y&&b.date.slice(5,7)===m);
@@ -380,13 +381,14 @@ $('#cg-pdf').onclick=async()=>{if(!cReady())return;const d=cData();
  sh.style.transform=old;scale()};
 /* all challans */
 function renderCB(){const q=$('#cb-q').value.toLowerCase(),p=$('#cb-p').value,m=$('#cb-m').value,y=$('#cb-y').value;
- const r=challans.filter(b=>(!p||b.partyId===p)&&(!m||b.date.slice(5,7)===m)&&(!y||b.date.slice(0,4)===y)&&(!q||(b.party+' '+b.no).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.created.localeCompare(a.created));
+ const r=challans.filter(b=>(!p||b.partyId===p)&&(!m||b.date.slice(5,7)===m)&&(!y||b.date.slice(0,4)===y)&&(!q||(b.party+' '+b.no).toLowerCase().includes(q))).sort((a,b)=>cmpNo(a,b)||a.party.localeCompare(b.party)||a.date.localeCompare(b.date));
  $('#cb-t').innerHTML='<tr><th>Date</th><th>Party</th><th>Challan No.</th><th class="r">Amount</th><th></th></tr>'+r.map(b=>`<tr><td>${fmtD(b.date)}</td><td>${esc(b.party)}</td><td>${esc(b.no)}</td><td class="r">${inr(b.amount)}</td><td class="r"><button class="lnk" data-e="${b.id}">Edit</button><button class="lnk d" data-d="${b.id}">Delete</button></td></tr>`).join('');
  $('#cb-s').textContent=r.length+' challans · '+inr(r.reduce((t,b)=>t+Number(b.amount),0))}
 ['#cb-q','#cb-p','#cb-m','#cb-y'].forEach(x=>$(x).addEventListener('input',renderCB));
 $('#cb-t').onclick=e=>{const b=challans.find(x=>x.id===(e.target.dataset.e||e.target.dataset.d));if(!b)return;
  if(e.target.dataset.e)openForm('Edit challan',[{label:'Party',val:b.party,list:'dlc'},{label:'Challan No.',val:b.no},{label:'Date',val:b.date,type:'date'},{label:'Amount (₹)',val:b.amount,type:'number'}],async v=>{
   const amt=parseFloat(v[3]);if(!v[0]||!v[1]||!v[2]||isNaN(amt)){toast('Fill all fields');return false}
+  {const x=challans.find(o=>o.id!==b.id&&nk(o.no)===nk(v[1])&&o.date.slice(0,7)===v[2].slice(0,7));if(x){toast('Challan '+v[1]+' is already entered for '+x.party+' in '+mon(v[2]));return false}}
   let c=findCC(v[0]);if(!c){c={id:uid(),name:v[0],created:nowIso(),updated:nowIso()};await put('cclients',c)}
   await put('challans',{...b,partyId:c.id,party:c.name,no:v[1],date:v[2],amount:amt,updated:nowIso()});refresh()});
  else openForm('Delete challan?',[{msg:b.party+' · Challan '+b.no+' · '+inr(b.amount)}],async()=>{await rem('challans',b.id);refresh()},'Delete')};
@@ -416,7 +418,7 @@ $('#cs-t').onclick=e=>{const tr=e.target.closest('tr[data-n]');if(!tr)return;
 $('#cs-csv1').onclick=()=>{const{m,y,r}=csRows();if(!r.length)return toast('No challans in this month');const g=csGroup(r),k=Object.keys(g).sort((a,b)=>a.localeCompare(b));
  dlCsv([['Party','Challans','Total Amount'],...k.map(n=>[n,g[n].n,g[n].t]),['TOTAL',r.length,r.reduce((t,x)=>t+Number(x.amount),0)]],'Challan_Summary_'+MN[+m-1]+'_'+y+'.csv')};
 $('#cs-csv2').onclick=()=>{const{m,y,r}=csRows();if(!r.length)return toast('No challans in this month');
- r.sort((a,b)=>a.party.localeCompare(b.party)||a.date.localeCompare(b.date));
+ r.sort((a,b)=>cmpNo(a,b)||a.party.localeCompare(b.party));
  dlCsv([['Date','Party','Challan No.','Amount'],...r.map(x=>[fmtD(x.date),x.party,x.no,x.amount])],'Challans_'+MN[+m-1]+'_'+y+'.csv')};
 init();
 </script></body></html>
