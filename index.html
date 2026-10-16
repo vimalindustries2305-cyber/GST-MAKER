@@ -300,7 +300,7 @@ $('#s-csv2').onclick=()=>{const{m,y,r}=monthRows();if(!r.length)return toast('No
 function renderCli(){const q=$('#c-q').value.toLowerCase();
  const r=clients.filter(c=>(c.name+' '+(c.gstin||'')).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
  $('#c-t').innerHTML='<tr><th>Party</th><th>GSTIN</th><th>Address</th><th class="r">Bills</th><th class="r">Total GST</th><th></th></tr>'+r.map(c=>{const bs=bills.filter(b=>b.partyId===c.id);
-  return`<tr><td>${esc(c.name)}</td><td>${esc(c.gstin||'')}</td><td>${esc(c.address||'')}</td><td class="r">${bs.length}</td><td class="r">${inr(bs.reduce((s,b)=>s+Number(b.tax),0))}</td><td class="r"><button class="lnk" data-c="${c.id}">Edit</button></td></tr>`}).join('')}
+  return`<tr><td>${esc(c.name)}</td><td>${esc(c.gstin||'')}</td><td>${esc(c.address||'')}</td><td class="r">${bs.length}</td><td class="r">${inr(bs.reduce((s,b)=>s+Number(b.tax),0))}</td><td class="r"><button class="lnk" data-c="${c.id}">Edit</button><button class="lnk d" data-x="${c.id}">Delete</button></td></tr>`}).join('')}
 $('#c-q').oninput=renderCli;
 function clientForm(c){const isNew=!c;c=c||{id:uid(),name:'',gstin:'',address:'',created:nowIso()};
  openForm(isNew?'Add client':'Edit client',[{label:'Party Name',val:c.name},{label:'GSTIN (optional)',val:c.gstin||''},{label:'Address (optional)',val:c.address||''}],async v=>{
@@ -309,7 +309,11 @@ function clientForm(c){const isNew=!c;c=c||{id:uid(),name:'',gstin:'',address:''
   const renamed=!isNew&&c.name!==v[0];await put('clients',{...c,name:v[0],gstin:v[1],address:v[2],updated:nowIso()});
   if(renamed)for(const b of bills.filter(b=>b.partyId===c.id))await put('bills',{...b,party:v[0],updated:nowIso()});refresh()})}
 $('#c-add').onclick=()=>clientForm();
-$('#c-t').onclick=e=>{const c=clients.find(x=>x.id===e.target.dataset.c);if(c)clientForm(c)};
+function delParty(c,cc,ic,items,key,noun){const xs=items.filter(b=>b.partyId===c.id);
+ const f=xs.length?[{msg:c.name+' has '+xs.length+' '+(xs.length===1?noun.slice(0,-1):noun)+' ('+inr(xs.reduce((t,b)=>t+Number(b[key]),0))+'). Deleting this client will also permanently delete all of them.'},{label:'Type DELETE to confirm',val:''}]:[{msg:'Delete client "'+c.name+'"?'}];
+ openForm('Delete client?',f,async v=>{if(xs.length&&String(v[1]).toUpperCase()!=='DELETE'){toast('Type DELETE to confirm');return false}
+  for(const b of xs)await rem(ic,b.id);await rem(cc,c.id);toast('Client deleted');refresh()},'Delete')}
+$('#c-t').onclick=e=>{const d=e.target.dataset,c=clients.find(x=>x.id===(d.c||d.x));if(!c)return;if(d.x)delParty(c,'clients','bills',bills,'tax','bills');else clientForm(c)};
 /* ===== CHALLAN ===== */
 const findCC=n=>cclients.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase());
 ['#cg-m','#cg-gm','#cs-m'].forEach(x=>fillM($(x)));fillM($('#cb-m'),1);
@@ -396,7 +400,7 @@ $('#cb-t').onclick=e=>{const b=challans.find(x=>x.id===(e.target.dataset.e||e.ta
 function renderCC(){const q=$('#cc-q').value.toLowerCase();
  const r=cclients.filter(c=>c.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
  $('#cc-t').innerHTML='<tr><th>Party</th><th class="r">Challans</th><th class="r">Total Amount</th><th></th></tr>'+r.map(c=>{const xs=challans.filter(b=>b.partyId===c.id);
-  return`<tr><td>${esc(c.name)}</td><td class="r">${xs.length}</td><td class="r">${inr(xs.reduce((t,b)=>t+Number(b.amount),0))}</td><td class="r"><button class="lnk" data-c="${c.id}">Edit</button></td></tr>`}).join('')}
+  return`<tr><td>${esc(c.name)}</td><td class="r">${xs.length}</td><td class="r">${inr(xs.reduce((t,b)=>t+Number(b.amount),0))}</td><td class="r"><button class="lnk" data-c="${c.id}">Edit</button><button class="lnk d" data-x="${c.id}">Delete</button></td></tr>`}).join('')}
 $('#cc-q').oninput=renderCC;
 function ccForm(c){const isNew=!c;c=c||{id:uid(),name:'',created:nowIso()};
  openForm(isNew?'Add challan client':'Edit challan client',[{label:'Party Name',val:c.name}],async v=>{
@@ -405,7 +409,7 @@ function ccForm(c){const isNew=!c;c=c||{id:uid(),name:'',created:nowIso()};
   const renamed=!isNew&&c.name!==v[0];await put('cclients',{...c,name:v[0],updated:nowIso()});
   if(renamed)for(const b of challans.filter(b=>b.partyId===c.id))await put('challans',{...b,party:v[0],updated:nowIso()});refresh()})}
 $('#cc-add').onclick=()=>ccForm();
-$('#cc-t').onclick=e=>{const c=cclients.find(x=>x.id===e.target.dataset.c);if(c)ccForm(c)};
+$('#cc-t').onclick=e=>{const d=e.target.dataset,c=cclients.find(x=>x.id===(d.c||d.x));if(!c)return;if(d.x)delParty(c,'cclients','challans',challans,'amount','challans');else ccForm(c)};
 /* challan monthly summary */
 function csRows(){const m=$('#cs-m').value,y=$('#cs-y').value;return{m,y,r:challans.filter(x=>x.date.slice(0,4)===y&&x.date.slice(5,7)===m)}}
 function csGroup(r){const g={};r.forEach(x=>{(g[x.party]=g[x.party]||{n:0,t:0});g[x.party].n++;g[x.party].t+=Number(x.amount)});return g}
